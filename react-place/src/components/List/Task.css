@@ -1,0 +1,13 @@
+.task {
+    border-top: 2px solid;
+}
+
+.task__checkbox {
+    transform: scale(2);
+    margin: 10px 10px 10px 20px;
+    cursor: pointer;
+}
+
+.progress {
+    font-size: 20px;
+}

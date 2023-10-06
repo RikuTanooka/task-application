@@ -1,0 +1,36 @@
+.timer {
+    flex: 0.3;
+    margin: 500 5 5 5px ;
+    background-color: beige;
+    font-weight: 1000px;
+    border:  2px solid;
+    width: fit-content;
+    margin-left: 1050px;
+    margin-top: 0px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.timer > .timer__header {
+    font-size: 40px;
+    border-bottom: 1px solid;
+}
+
+.timer > .timer__timer {
+    font-size: 50px;
+    padding-top: 60px;
+    padding-bottom: 60px;
+    border-bottom: 1px solid;
+}
+
+.button {
+    border-radius: 5px;
+    margin: 10px 5px 5px 5px;
+    font-size: 30px;
+    cursor: pointer;
+    transition: color 0.15s ease-out;
+}
+
+.button:hover {
+    background-color: rgb(156, 223, 244);
+}

@@ -1,0 +1,7 @@
+.list {
+    flex: 0.7;
+    font-size: 30px;
+    border:  2px solid;
+    width: fit-content;
+    margin: auto;
+}

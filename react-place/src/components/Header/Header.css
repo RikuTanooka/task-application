@@ -1,0 +1,8 @@
+.header {
+    flex: 0.7;
+    margin: 0 auto;
+    background-color: orange;
+    width: fit-content;
+    margin-top: 50px;
+    border: 5px;
+}
