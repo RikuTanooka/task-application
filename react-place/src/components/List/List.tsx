@@ -1,16 +1,74 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import db from "../../firebase";
 import "./List.css";
 import Task from "./Task";
 
-function List() {
-    const [tasks, setTasks] = useState([
-        { id: "1", task_name: "タスク1", ideal_progress: 50, real_progress: 30 },
-        { id: "2", task_name: "タスク2", ideal_progress: 70, real_progress: 60 },
-    ]);
+type DocumentDataProps = {
+    id: number;
+    task_Name: string;
+    ideal_progress: string;
+    real_progress: string;
+    documentId: string;
+}[];
 
-    const removeTask = (taskId: string) => {
-        const updatedTasks = tasks.filter((task) => task.id !== taskId);
-        setTasks(updatedTasks);
+function List() {
+    const [tasks, setTasks] = useState<DocumentDataProps>([]);
+
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const taskData = db.collection("tasks");
+                const quarySnapshot = await taskData.orderBy("timestamp", "desc").get();
+                const newSelectedPost = quarySnapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    return {
+                        id: data.taskId,
+                        task_Name: data.taskName,
+                        ideal_progress: data.ideal_progress,
+                        real_progress: data.real_progress,
+                        documentId: doc.id,
+                    };
+                });
+                setTasks(newSelectedPost);
+            } catch (error) {
+                console.error("Error fetching tasks", error);
+            }
+        };
+
+        fetchTasks();
+
+        /*
+        const updateDate = () => {
+            const taskData = db.collection("tasks");
+            //const taskData = collection(db, "tasks");
+            taskData.get().then((quarySnapshots) => {
+                setTasks(quarySnapshots.docs.map((doc) => doc.data()));
+            });
+        };
+
+        return () => {
+            updateDate();
+        };
+        */
+    }, []);
+
+    const removeTask = async (taskId: number) => {
+        await Promise.all(
+            tasks.map(async (task) => {
+                if (taskId === task.id) {
+                    await db
+                        .collection("tasks")
+                        .doc(task.documentId)
+                        .delete()
+                        .then(() => {
+                            console.log("Success delete data!");
+                        })
+                        .catch((error) => {
+                            console.log("Unsuccess delete data...", error);
+                        });
+                }
+            })
+        );
     };
     return (
         <div className="list">
@@ -19,10 +77,10 @@ function List() {
                 <Task
                     key={task.id}
                     id={task.id}
-                    task_name={task.task_name}
+                    task_name={task.task_Name}
                     ideal_progress={task.ideal_progress}
                     real_progress={task.real_progress}
-                    onRemoveClick={removeTask}
+                    onRemoveClick={() => removeTask(task.id)}
                 />
             ))}
         </div>
