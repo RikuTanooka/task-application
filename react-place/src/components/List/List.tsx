@@ -36,20 +36,6 @@ function List() {
         };
 
         fetchTasks();
-
-        /*
-        const updateDate = () => {
-            const taskData = db.collection("tasks");
-            //const taskData = collection(db, "tasks");
-            taskData.get().then((quarySnapshots) => {
-                setTasks(quarySnapshots.docs.map((doc) => doc.data()));
-            });
-        };
-
-        return () => {
-            updateDate();
-        };
-        */
     }, []);
 
     const removeTask = async (taskId: number) => {

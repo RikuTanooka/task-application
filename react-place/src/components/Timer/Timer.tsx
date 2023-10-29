@@ -13,14 +13,9 @@ function Timer() {
 
     const [isRunning, setIsRunning] = useState(false);
 
-    const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
-    const start = () => {
-        setIsRunning(true);
-    };
+    const [input_state, setInput_state] = useState<Boolean>(false);
 
-    const stop = () => {
-        setIsRunning(false);
-    };
+    const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
     const reset = () => {
         set_h_Count(0);
@@ -61,6 +56,26 @@ function Timer() {
         return n >= 10 ? String(n) : `0${n}`;
     };
 
+    const Timer_set = () => {
+        //入力した時間、分、秒の値をこっちに持ってくるようにしたい。
+        //
+    };
+
+    const hour_value_set = (e: string) => {
+        set_h_Count(parseInt(e));
+        set_dis_h_Count(getdoubleDigestNumer(parseInt(e)));
+    };
+
+    const minute_value_set = (e: string) => {
+        set_m_Count(parseInt(e));
+        set_dis_m_Count(getdoubleDigestNumer(parseInt(e)));
+    };
+
+    const seconds_value_set = (e: string) => {
+        set_m_Count(parseInt(e));
+        set_dis_m_Count(getdoubleDigestNumer(parseInt(e)));
+    };
+
     useEffect(() => {
         if (isRunning) {
             intervalIdRef.current = setInterval(() => {
@@ -85,18 +100,65 @@ function Timer() {
         <div className="timer">
             <div className="timer__header">タイマー</div>
             <div className="timer__timer">
-                {dis_h_count}:{dis_m_count}:{dis_s_count}
+                <div>
+                    {input_state ? (
+                        <div>
+                            【時:分:秒】を入力してください
+                            <br />
+                            <input
+                                type="number"
+                                min="0"
+                                value={h_count}
+                                onChange={(e) => hour_value_set(e.target.value)}
+                            />
+                            :
+                            <input
+                                type="number"
+                                min="0"
+                                max="59"
+                                value={m_count}
+                                onChange={(e) => minute_value_set(e.target.value)}
+                            />
+                            :
+                            <input
+                                type="number"
+                                min="0"
+                                max="59"
+                                value={s_count}
+                                onChange={(e) => seconds_value_set(e.target.value)}
+                            />
+                            <br />
+                            <Button
+                                className="new_timer"
+                                onClick={() => setInput_state(false)}
+                            >
+                                入力完了
+                            </Button>
+                        </div>
+                    ) : (
+                        <div>
+                            {dis_h_count}:{dis_m_count}:{dis_s_count}
+                            <br />
+                            <Button
+                                className="new_task"
+                                onClick={() => setInput_state(true)}
+                            >
+                                タイマーの時間設定
+                            </Button>
+                        </div>
+                    )}
+                </div>
             </div>
             <div>
                 <Button
                     className="button"
-                    onClick={start}
+                    onClick={() => setIsRunning(true)}
                 >
                     Start
                 </Button>
                 <Button
                     className="button"
-                    onClick={stop}
+                    onClick={() => setIsRunning(false)}
                 >
                     Stop
                 </Button>
@@ -110,4 +172,5 @@ function Timer() {
         </div>
     );
 }
+
 export default Timer;
