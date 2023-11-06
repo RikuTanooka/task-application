@@ -1,21 +1,36 @@
 import { Button } from "@mui/base";
 import { useEffect, useRef, useState } from "react";
+import db from "../../firebase";
 import "./Timer.css";
 
-function Timer() {
-    const [h_count, set_h_Count] = useState(5);
-    const [m_count, set_m_Count] = useState(0);
-    const [s_count, set_s_Count] = useState(10);
+type checkedTaskProps = {
+    id: number;
+    check: boolean;
+    ideal_progress: string;
+    documentId: string;
+}[];
 
-    const [dis_h_count, set_dis_h_Count] = useState<string>("05");
-    const [dis_m_count, set_dis_m_Count] = useState<string>("00");
-    const [dis_s_count, set_dis_s_Count] = useState<string>("10");
+function Timer() {
+    const [h_count, set_h_Count] = useState(0);
+    const [m_count, set_m_Count] = useState(1);
+    const [s_count, set_s_Count] = useState(40);
+
+    const [dis_h_count, set_dis_h_Count] = useState<string>("00");
+    const [dis_m_count, set_dis_m_Count] = useState<string>("01");
+    const [dis_s_count, set_dis_s_Count] = useState<string>("40");
 
     const [isRunning, setIsRunning] = useState(false);
 
     const [input_state, setInput_state] = useState<Boolean>(false);
 
     const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+
+    //分子
+    const [molecule, setmolecule] = useState(0);
+    //分母
+    const [denominator, setDenominator] = useState(0);
+    //タスクの中身
+    const [checkedTask, setcheckedTask] = useState<checkedTaskProps>([]);
 
     const reset = () => {
         set_h_Count(0);
@@ -25,9 +40,11 @@ function Timer() {
         set_dis_m_Count("00");
         set_dis_s_Count("00");
         setIsRunning(false);
+        setmolecule(0);
     };
 
     const tick = () => {
+        setmolecule(molecule + 1);
         if (dis_s_count !== "00") {
             let sn = s_count - 1;
             set_s_Count(sn);
@@ -56,11 +73,6 @@ function Timer() {
         return n >= 10 ? String(n) : `0${n}`;
     };
 
-    const Timer_set = () => {
-        //入力した時間、分、秒の値をこっちに持ってくるようにしたい。
-        //
-    };
-
     const hour_value_set = (e: string) => {
         set_h_Count(parseInt(e));
         set_dis_h_Count(getdoubleDigestNumer(parseInt(e)));
@@ -72,14 +84,52 @@ function Timer() {
     };
 
     const seconds_value_set = (e: string) => {
-        set_m_Count(parseInt(e));
-        set_dis_m_Count(getdoubleDigestNumer(parseInt(e)));
+        set_s_Count(parseInt(e));
+        set_dis_s_Count(getdoubleDigestNumer(parseInt(e)));
+    };
+
+    const start = () => {
+        if (!isRunning) {
+            setDenominator(h_count * 3600 + m_count * 60 + s_count);
+        }
+        setIsRunning(true);
+        console.log(denominator, molecule);
     };
 
     useEffect(() => {
+        const fetchData = async () => {
+            const snapshot = await db.collection("tasks").get();
+
+            const SelectedPost = snapshot.docs.map((doc) => {
+                const data = doc.data();
+                console.log("success!");
+                return {
+                    id: data.taskId,
+                    check: data.check,
+                    ideal_progress: data.ideal_progress,
+                    documentId: doc.id,
+                };
+            });
+
+            setcheckedTask(SelectedPost);
+        };
+
+        fetchData();
+
         if (isRunning) {
             intervalIdRef.current = setInterval(() => {
                 tick();
+                checkedTask.map(async (post) => {
+                    console.log(post.id);
+                    console.log(post.documentId);
+                    if (post.check) {
+                        db.collection("tasks")
+                            .doc(post.documentId)
+                            .update({
+                                ideal_progress: parseFloat(((molecule / denominator) * 100).toFixed(1)),
+                            });
+                    }
+                });
             }, 1000);
         } else {
             if (intervalIdRef.current) {
@@ -152,7 +202,7 @@ function Timer() {
             <div>
                 <Button
                     className="button"
-                    onClick={() => setIsRunning(true)}
+                    onClick={start}
                 >
                     Start
                 </Button>

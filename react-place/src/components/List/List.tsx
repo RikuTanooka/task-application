@@ -5,6 +5,7 @@ import Task from "./Task";
 
 type DocumentDataProps = {
     id: number;
+    check: boolean;
     task_Name: string;
     ideal_progress: string;
     real_progress: string;
@@ -23,6 +24,7 @@ function List() {
                     const data = doc.data();
                     return {
                         id: data.taskId,
+                        check: data.check,
                         task_Name: data.taskName,
                         ideal_progress: data.ideal_progress,
                         real_progress: data.real_progress,
@@ -36,7 +38,7 @@ function List() {
         };
 
         fetchTasks();
-    }, []);
+    }, [tasks]);
 
     const removeTask = async (taskId: number) => {
         await Promise.all(

@@ -1,6 +1,6 @@
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { Button } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import db from "../../firebase";
 import "./Task.css";
 
@@ -14,42 +14,49 @@ type TaskProps = {
 
 type DocumentDataProps = {
     id: number;
+    check: boolean;
     task_Name: string;
     ideal_progress: string;
     real_progress: string;
     documentId: string;
 }[];
 
+type checkProps = {
+    id: number;
+    check: boolean;
+}[];
+
 function Task({ id, task_name, ideal_progress, real_progress, onRemoveClick }: TaskProps): JSX.Element {
     const [progress, setProgress] = useState<string>("0");
     const [input_state, setInput_state] = useState<Boolean>(false);
     const [selectedPost, setSelectedPost] = useState<DocumentDataProps>([]);
+    const [checkData, setCheckData] = useState<number[]>([]);
 
-    const handleRemoveClick = () => {
-        onRemoveClick(id);
-    };
+    // コンポーネント内でのselectedPostの状態管理をuseEffectを使って行う
+    useEffect(() => {
+        const fetchData = async () => {
+            const snapshot = await db.collection("tasks").get();
 
-    const input_real_progress = async () => {
-        setInput_state(true);
-
-        const snapshot = await db.collection("tasks").get();
-
-        const newSelectedPost = await Promise.all(
-            snapshot.docs.map(async (doc) => {
+            const newSelectedPost = snapshot.docs.map((doc) => {
                 const data = doc.data();
                 return {
                     id: data.taskId,
+                    check: data.check,
                     task_Name: data.taskName,
                     ideal_progress: data.ideal_progress,
                     real_progress: data.real_progress,
                     documentId: doc.id,
                 };
-            })
-        );
+            });
 
-        setSelectedPost(newSelectedPost);
+            setSelectedPost(newSelectedPost);
+        };
 
-        console.log(newSelectedPost);
+        fetchData();
+    }, [setInput_state]);
+
+    const handleRemoveClick = () => {
+        onRemoveClick(id);
     };
 
     const output_real_progress = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -73,6 +80,31 @@ function Task({ id, task_name, ideal_progress, real_progress, onRemoveClick }: T
         );
     };
 
+    const check_event = async (e: number) => {
+        if (checkData.includes(e)) {
+            await setCheckData(checkData.filter((item) => item !== e));
+            updateFirestore(id, false);
+        } else {
+            await setCheckData([...checkData, e]);
+            updateFirestore(id, true);
+        }
+    };
+
+    const updateFirestore = async (id: number, state: boolean) => {
+        await Promise.all(
+            selectedPost.map(async (post) => {
+                console.log(id);
+                console.log(post.id);
+                console.log(post.documentId);
+                if (id === post.id) {
+                    db.collection("tasks").doc(post.documentId).update({
+                        check: state,
+                    });
+                }
+            })
+        );
+    };
+
     return (
         <div className="task">
             <label>
@@ -80,6 +112,8 @@ function Task({ id, task_name, ideal_progress, real_progress, onRemoveClick }: T
                     id={String(id)}
                     className="task__checkbox"
                     type="checkbox"
+                    checked={checkData.includes(id)}
+                    onChange={() => check_event(id)}
                 />
                 {task_name}
                 想定進捗:{ideal_progress}%
@@ -115,7 +149,7 @@ function Task({ id, task_name, ideal_progress, real_progress, onRemoveClick }: T
                         <Button
                             className="progress"
                             variant="contained"
-                            onClick={input_real_progress}
+                            onClick={() => setInput_state(true)}
                         >
                             進捗度の入力
                         </Button>

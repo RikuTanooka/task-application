@@ -5,6 +5,7 @@ import db from "../../firebase";
 
 type DocumentDataProps = {
     id: number;
+    check: boolean;
     task_Name: string;
     ideal_progress: string;
     real_progress: string;
@@ -26,6 +27,7 @@ function Taskmaker() {
                 const data = doc.data();
                 return {
                     id: data.taskId,
+                    check: data.check,
                     task_Name: data.taskName,
                     ideal_progress: data.ideal_progress,
                     real_progress: data.real_progress,
@@ -47,6 +49,7 @@ function Taskmaker() {
         if (selectedPost.length > 0) {
             await db.collection("tasks").add({
                 taskId: selectedPost[0].id + 1,
+                check: false,
                 taskName: task_name,
                 ideal_progress: 0,
                 real_progress: 0,
@@ -55,6 +58,7 @@ function Taskmaker() {
         } else {
             db.collection("tasks").add({
                 taskId: 1,
+                check: false,
                 taskName: task_name,
                 ideal_progress: 0,
                 real_progress: 0,
