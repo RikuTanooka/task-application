@@ -1,12 +1,15 @@
 import { Button } from "@mui/base";
 import { useEffect, useRef, useState } from "react";
+import { getData } from "../../Firestoredata";
 import db from "../../firebase";
 import "./Timer.css";
 
-type checkedTaskProps = {
+type DocumentDataProps = {
     id: number;
     check: boolean;
+    task_Name: string;
     ideal_progress: string;
+    real_progress: string;
     documentId: string;
 }[];
 
@@ -30,7 +33,7 @@ function Timer() {
     //分母
     const [denominator, setDenominator] = useState(0);
     //タスクの中身
-    const [checkedTask, setcheckedTask] = useState<checkedTaskProps>([]);
+    const [checkedTask, setcheckedTask] = useState<DocumentDataProps>([]);
 
     const reset = () => {
         set_h_Count(0);
@@ -98,20 +101,13 @@ function Timer() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const snapshot = await db.collection("tasks").get();
+            const Taskdata = await getData();
 
-            const SelectedPost = snapshot.docs.map((doc) => {
-                const data = doc.data();
-                console.log("success!");
-                return {
-                    id: data.taskId,
-                    check: data.check,
-                    ideal_progress: data.ideal_progress,
-                    documentId: doc.id,
-                };
-            });
-
-            setcheckedTask(SelectedPost);
+            if (Taskdata !== null) {
+                await setcheckedTask(Taskdata);
+            } else {
+                console.log("selected tasks is empty");
+            }
         };
 
         fetchData();

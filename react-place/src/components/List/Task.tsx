@@ -1,6 +1,7 @@
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { Button } from "@mui/material";
 import React, { useEffect, useState } from "react";
+import { getData } from "../../Firestoredata";
 import db from "../../firebase";
 import "./Task.css";
 
@@ -21,11 +22,6 @@ type DocumentDataProps = {
     documentId: string;
 }[];
 
-type checkProps = {
-    id: number;
-    check: boolean;
-}[];
-
 function Task({ id, task_name, ideal_progress, real_progress, onRemoveClick }: TaskProps): JSX.Element {
     const [progress, setProgress] = useState<string>("0");
     const [input_state, setInput_state] = useState<Boolean>(false);
@@ -35,21 +31,13 @@ function Task({ id, task_name, ideal_progress, real_progress, onRemoveClick }: T
     // コンポーネント内でのselectedPostの状態管理をuseEffectを使って行う
     useEffect(() => {
         const fetchData = async () => {
-            const snapshot = await db.collection("tasks").get();
+            const Taskdata = await getData();
 
-            const newSelectedPost = snapshot.docs.map((doc) => {
-                const data = doc.data();
-                return {
-                    id: data.taskId,
-                    check: data.check,
-                    task_Name: data.taskName,
-                    ideal_progress: data.ideal_progress,
-                    real_progress: data.real_progress,
-                    documentId: doc.id,
-                };
-            });
-
-            setSelectedPost(newSelectedPost);
+            if (Taskdata !== null) {
+                await setSelectedPost(Taskdata);
+            } else {
+                console.log("selected tasks is empty");
+            }
         };
 
         fetchData();

@@ -1,6 +1,7 @@
 import { Button } from "@mui/material";
 import { serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
+import { getData } from "../../Firestoredata";
 import db from "../../firebase";
 
 type DocumentDataProps = {
@@ -20,25 +21,13 @@ function Taskmaker() {
     const input_new_task = async () => {
         setInput_state(true);
 
-        const snapshot = await db.collection("tasks").orderBy("taskId", "desc").get();
+        const Taskdata = await getData();
 
-        const newSelectedPost = await Promise.all(
-            snapshot.docs.map(async (doc) => {
-                const data = doc.data();
-                return {
-                    id: data.taskId,
-                    check: data.check,
-                    task_Name: data.taskName,
-                    ideal_progress: data.ideal_progress,
-                    real_progress: data.real_progress,
-                    documentId: doc.id,
-                };
-            })
-        );
-
-        setSelectedPost(newSelectedPost);
-
-        console.log(newSelectedPost);
+        if (Taskdata !== null) {
+            await setSelectedPost(Taskdata);
+        } else {
+            console.log("selected tasks is empty");
+        }
     };
 
     const output_new_task = async (e: React.MouseEvent<HTMLButtonElement>) => {
